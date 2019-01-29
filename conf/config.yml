@@ -1,0 +1,11 @@
+configServiceAddress:
+  ip: 127.0.0.1
+  port: 9001
+httpOuterAddress:
+  ip: http://127.0.0.1
+  port: 9003
+httpInnerAddress:
+  ip: 0.0.0.0
+  port: 9003
+moduleName: converter
+instanceUuid: 3f4faf30-8482-48ef-931a-b15575a3af1d
