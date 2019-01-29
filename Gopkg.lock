@@ -153,7 +153,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4d02d8a1cc1859be52b2fd83f2bd520a5ab3790cc48495abd0f903e8c6c4b32b"
+  digest = "1:46368fd777cdbc0217b0956fedfac099474d6d92f60f3efe7aded62a4ee1176d"
   name = "github.com/integration-system/isp-lib"
   packages = [
     "backend",
@@ -170,7 +170,7 @@
     "utils",
   ]
   pruneopts = "UT"
-  revision = "0f71aaf83133a59c9fc143faecbd38b86ed068e2"
+  revision = "c3f4464336b7e934b57690a8e5936017cbfe1c15"
 
 [[projects]]
   branch = "master"

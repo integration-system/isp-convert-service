@@ -2,6 +2,7 @@ package helper
 
 import (
 	"errors"
+	"golang.org/x/net/context"
 	"sync"
 	"time"
 
@@ -155,6 +156,8 @@ func createConnPools(addr structure.AddressConfiguration) (*grpcpool.Pool, error
 func getConnFactory(addr string) grpcpool.Factory {
 	return func() (*grpc.ClientConn, error) {
 		// grpclb, pick_first, round_robin
-		return grpc.Dial(addr, grpc.WithInsecure() /*, grpc.WithBalancerName("round_robin")*/)
+		ctx := context.Background()
+		ctx, _ = context.WithTimeout(ctx, 3*time.Second)
+		return grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure())
 	}
 }

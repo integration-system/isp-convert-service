@@ -59,7 +59,7 @@ func onRemoteConfigReceive(cfg, oldRemoteConfig *conf.RemoteConfig) {
 	createRestServer(cfg)
 	metric.InitCollectors(cfg.Metrics, oldRemoteConfig.Metrics)
 	metric.InitHttpServer(cfg.Metrics)
-	metric.InitStatusChecker("routers", helper.GetRoutersAndStatus)
+	//metric.InitStatusChecker("router-grpc", helper.GetRoutersAndStatus)
 	service.InitMetrics()
 }
 
