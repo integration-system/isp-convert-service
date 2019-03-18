@@ -128,6 +128,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:7edb99b124d77ae909910e2ba563fbe652e9596f5798bd10f67fd66ba0fa9c82"
+  name = "github.com/integration-system/bellows"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3f9681649fb950d5ccbb9e90843ef860696e78d0"
+
+[[projects]]
+  branch = "master"
   digest = "1:1b1d9534e35d61e861a7356f7f2d766e57e2777dbf79be60e1ac56bbd60adf51"
   name = "github.com/integration-system/go-cmp"
   packages = [
@@ -153,14 +161,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:46368fd777cdbc0217b0956fedfac099474d6d92f60f3efe7aded62a4ee1176d"
+  digest = "1:dc83e29731bd71f6443949cd9245923492cc8e51128cc9e81bf521555fa563f8"
   name = "github.com/integration-system/isp-lib"
   packages = [
     "backend",
     "bootstrap",
     "config",
     "config/schema",
-    "http",
     "logger",
     "metric",
     "proto/stubs",
@@ -170,7 +177,7 @@
     "utils",
   ]
   pruneopts = "UT"
-  revision = "c3f4464336b7e934b57690a8e5936017cbfe1c15"
+  revision = "d1d6c58deec482f2419c5e47c3940e1f28ddf785"
 
 [[projects]]
   branch = "master"
