@@ -1,6 +1,7 @@
 package main
 
 import (
+	"isp-convert-service/controllers"
 	"isp-convert-service/service"
 	"os"
 	"path"
@@ -8,7 +9,6 @@ import (
 	"time"
 
 	"isp-convert-service/conf"
-	"isp-convert-service/controllers"
 	"isp-convert-service/helper"
 
 	"github.com/buaazp/fasthttprouter"
