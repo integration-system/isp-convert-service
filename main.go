@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/integration-system/isp-lib/structure"
 	"isp-convert-service/controllers"
 	"isp-convert-service/service"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"github.com/integration-system/isp-lib/config"
 	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/metric"
-	"github.com/integration-system/isp-lib/socket"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/net/context"
 	u "isp-convert-service/utils"
@@ -104,9 +104,9 @@ func createRestServer(appConfig *conf.RemoteConfig) {
 	srvLock.Unlock()
 }
 
-func socketConfiguration(cfg interface{}) socket.SocketConfiguration {
+func socketConfiguration(cfg interface{}) structure.SocketConfiguration {
 	appConfig := cfg.(*conf.Configuration)
-	return socket.SocketConfiguration{
+	return structure.SocketConfiguration{
 		Host:   appConfig.ConfigServiceAddress.IP,
 		Port:   appConfig.ConfigServiceAddress.Port,
 		Secure: false,

@@ -24,6 +24,9 @@
 #   go-tests = true
 #   unused-packages = true
 
+[[override]]
+  name = "github.com/valyala/fasthttp"
+  branch = "master"
 
 [prune]
   go-tests = true
