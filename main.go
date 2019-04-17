@@ -5,12 +5,11 @@ import (
 	"isp-convert-service/controllers"
 	"isp-convert-service/service"
 	"os"
-	"path"
 	"sync"
 	"time"
 
 	"isp-convert-service/conf"
-	"isp-convert-service/helper"
+	"isp-convert-service/invoker"
 
 	"github.com/buaazp/fasthttprouter"
 	"github.com/integration-system/isp-lib/bootstrap"
@@ -23,21 +22,12 @@ import (
 )
 
 var (
-	executableFileDir string
-	version           = "0.1.0"
-	date              = "undefined"
+	version = "0.1.0"
+	date    = "undefined"
 
 	srvLock = sync.Mutex{}
 	httpSrv *fasthttp.Server
 )
-
-func init() {
-	ex, err := os.Executable()
-	if err != nil {
-		logger.Fatal(err)
-	}
-	executableFileDir = path.Dir(ex)
-}
 
 func main() {
 	bootstrap.
@@ -45,7 +35,7 @@ func main() {
 		OnLocalConfigLoad(onLocalConfigLoad).
 		SocketConfiguration(socketConfiguration).
 		DeclareMe(routesData).
-		RequireModule("router", helper.CheckReconnectWhenConfigChanged, true).
+		RequireModule("router", invoker.HandleRoutesAddresses, true).
 		OnShutdown(onShutdown).
 		OnRemoteConfigReceive(onRemoteConfigReceive).
 		Run()
@@ -69,9 +59,6 @@ func createRestServer(appConfig *conf.RemoteConfig) {
 	// === REST ===
 	router.Handle("POST", "/api/*any", controllers.HandlerAllRequest)
 	router.Handle("GET", "/api/*any", controllers.HandlerAllRequest)
-	router.Handle("POST", "/mock/api", controllers.HandlerSwagger)
-	router.Handle("GET", "/mock/api", controllers.HandlerSwagger)
-	router.ServeFiles("/swagger/*filepath", path.Join(executableFileDir, "static", "swagger-ui"))
 
 	maxRequestBodySize := appConfig.MaxRequestBodySizeBytes
 	if appConfig.MaxRequestBodySizeBytes <= 0 {
@@ -119,7 +106,7 @@ func socketConfiguration(cfg interface{}) structure.SocketConfiguration {
 
 func onShutdown(_ context.Context, _ os.Signal) {
 	_ = httpSrv.Shutdown()
-	helper.CloseAllConnections()
+	invoker.RouterClient.Close()
 }
 
 func routesData(localConfig interface{}) bootstrap.ModuleInfo {

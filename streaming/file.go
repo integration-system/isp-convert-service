@@ -1,12 +1,12 @@
 package streaming
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"isp-convert-service/conf"
@@ -60,7 +60,7 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 		}
 	}
 
-	response := make([]interface{}, 0)
+	response := make([]string, 0)
 	buffer := make([]byte, bufferSize)
 	ok := true
 	eof := false
@@ -91,7 +91,7 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 			msg, err := stream.Recv()
 			v, err := utils.ConvertAndWriteResponse(msg, err, ctx)
 			if err == nil {
-				response = append(response, v)
+				response = append(response, string(v))
 			}
 			ok = err == nil
 		}
@@ -107,8 +107,8 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 	}
 
 	if ok {
-		bytes, _ := json.Marshal(response)
-		_, err = ctx.Write(bytes)
+		arrayBody := strings.Join(response, ",")
+		_, err = ctx.WriteString("[" + arrayBody + "]")
 		if err != nil {
 			logger.Warn(err)
 		}

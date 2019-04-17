@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"isp-convert-service/helper"
+	"isp-convert-service/invoker"
 	"isp-convert-service/structure"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -110,10 +110,5 @@ func WriteAndLogError(message string, err error, ctx *fasthttp.RequestCtx, code 
 }
 
 func GetGrpcClient() (isp.BackendServiceClient, error) {
-	conn, err := helper.GetGrpcConnection()
-	if err != nil {
-		return nil, err
-	} else {
-		return isp.NewBackendServiceClient(conn), nil
-	}
+	return invoker.RouterClient.Conn()
 }

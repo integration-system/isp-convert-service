@@ -17,16 +17,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func HandlerSwagger(ctx *fasthttp.RequestCtx) {
-	values := ctx.QueryArgs()
-	method := string(values.Peek("method"))
-	if method == "" {
-		ctx.Error("Method not received", http.StatusBadRequest)
-		return
-	}
-	proxyRequestHandle(ctx, method)
-}
-
 func HandlerAllRequest(ctx *fasthttp.RequestCtx) {
 	currentTime := time.Now()
 
