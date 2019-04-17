@@ -155,7 +155,7 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 		utils.ConvertAndWriteResponse(nil, err, ctx)
 		return
 	}
-	header := &ctx.Request.Header
+	header := &ctx.Response.Header
 	header.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", bf.FileName))
 	header.Set("Content-Type", bf.ContentType)
 	if bf.ContentLength > 0 {
