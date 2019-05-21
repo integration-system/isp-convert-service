@@ -2,12 +2,16 @@ package utils
 
 import (
 	"fmt"
+	"github.com/golang/protobuf/proto"
+	"github.com/integration-system/isp-convert-service/conf"
+	"github.com/integration-system/isp-lib/config"
 	"net/http"
 	"strings"
 
 	"isp-convert-service/invoker"
 	"isp-convert-service/structure"
 
+	"github.com/golang/protobuf/ptypes/struct"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/integration-system/isp-lib/backend"
 	"github.com/integration-system/isp-lib/logger"
@@ -63,18 +67,35 @@ func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestC
 		if ok {
 			logger.Debug(err)
 			ctx.SetStatusCode(runtime.HTTPStatusFromCode(s.Code()))
-			errorData, err := json.Marshal(structure.GrpcError{
-				ErrorMessage: s.Message(), ErrorCode: s.Code().String(), Details: s.Details(),
-			})
-			if err != nil {
-				ctx.Write([]byte(err.Error()))
+			if config.GetRemote().(*conf.RemoteConfig).EnableOriginalProtoErrors {
+				msg, err := proto.Marshal(s.Proto())
+				if err != nil {
+					writeServiceError(ctx, err)
+				} else {
+					ctx.Write(msg)
+				}
 			} else {
-				ctx.Write(errorData)
+				details := s.Details()
+				newDetails := make([]interface{}, len(details))
+				for i, detail := range details {
+					switch typeOfDetail := detail.(type) {
+					case *structpb.Struct:
+						newDetails[i] = utils.ConvertGrpcStructToInterface(
+							&structpb.Value{Kind: &structpb.Value_StructValue{StructValue: typeOfDetail}})
+					default:
+						newDetails[i] = typeOfDetail
+					}
+				}
+				if errorData, err := json.Marshal(
+					structure.GrpcError{ErrorMessage: s.Message(), ErrorCode: s.Code().String(), Details: newDetails},
+				); err != nil {
+					writeServiceError(ctx, err)
+				} else {
+					ctx.Write(errorData)
+				}
 			}
 		} else {
-			logger.Warn(err)
-			ctx.SetStatusCode(http.StatusServiceUnavailable)
-			ctx.Write([]byte(utils.ServiceError))
+			writeServiceError(ctx, err)
 		}
 		return nil, nil
 	}
@@ -111,4 +132,10 @@ func WriteAndLogError(message string, err error, ctx *fasthttp.RequestCtx, code 
 
 func GetGrpcClient() (isp.BackendServiceClient, error) {
 	return invoker.RouterClient.Conn()
+}
+
+func writeServiceError(ctx *fasthttp.RequestCtx, err error) {
+	logger.Warn(err)
+	ctx.SetStatusCode(http.StatusServiceUnavailable)
+	ctx.Write([]byte(utils.ServiceError))
 }

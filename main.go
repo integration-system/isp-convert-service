@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/integration-system/isp-lib/config/schema"
 	"github.com/integration-system/isp-lib/structure"
 	"isp-convert-service/controllers"
 	"isp-convert-service/service"
@@ -33,6 +34,7 @@ func main() {
 	bootstrap.
 		ServiceBootstrap(&conf.Configuration{}, &conf.RemoteConfig{}).
 		OnLocalConfigLoad(onLocalConfigLoad).
+		DefaultRemoteConfigPath(schema.ResolveDefaultConfigPath("default_remote_config.json")).
 		SocketConfiguration(socketConfiguration).
 		DeclareMe(routesData).
 		RequireModule("router", invoker.HandleRoutesAddresses, true).
