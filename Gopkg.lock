@@ -45,29 +45,15 @@
   version = "v1.2.4"
 
 [[projects]]
-  digest = "1:48092bf6632f55839850666c33469f546f6d45fdbd59a66759ec12e84d853dc2"
-  name = "github.com/gogo/protobuf"
-  packages = ["proto"]
-  pruneopts = "UT"
-  revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
-  version = "v1.2.1"
-
-[[projects]]
-  digest = "1:489a99067cd08971bd9c1ee0055119ba8febc1429f9200ab0bec68d35e8c4833"
+  digest = "1:57bf08b3ada129d5d845734e80096504898445ece891e87ce371d5d67a18a079"
   name = "github.com/golang/protobuf"
   packages = [
-    "jsonpb",
     "proto",
-    "protoc-gen-go/descriptor",
-    "protoc-gen-go/generator",
-    "protoc-gen-go/generator/internal/remap",
-    "protoc-gen-go/plugin",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
     "ptypes/struct",
     "ptypes/timestamp",
-    "ptypes/wrappers",
   ]
   pruneopts = "UT"
   revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
@@ -80,18 +66,6 @@
   pruneopts = "UT"
   revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
   version = "v1.4.0"
-
-[[projects]]
-  digest = "1:4f30fff718a459f9be272e7aa87463cdf4ba27bb8bd7f586ac34c36d670aada4"
-  name = "github.com/grpc-ecosystem/grpc-gateway"
-  packages = [
-    "internal",
-    "runtime",
-    "utilities",
-  ]
-  pruneopts = "UT"
-  revision = "8fd5fd9d19ce68183a6b0934519dfe7fe6269612"
-  version = "v1.9.0"
 
 [[projects]]
   digest = "1:c0d19ab64b32ce9fe5cf4ddceba78d5bc9807f0016db6b1183599da3dcc24d10"
@@ -146,13 +120,22 @@
   revision = "5959fcea049facd9441fff9de976191accd3cf9f"
 
 [[projects]]
-  digest = "1:6ef7ec28617db13567e9022e4972e8031cf738ac6e929e6231e6d7410e975d1a"
+  branch = "master"
+  digest = "1:abd0cd78d6d27a98080f2b2a7fd39bb2f3d3eef6aa20c720093129f04fb41d78"
+  name = "github.com/integration-system/gowsdl"
+  packages = ["soap"]
+  pruneopts = "UT"
+  revision = "368713356c71961354e09ab9b734740ebdd94784"
+
+[[projects]]
+  digest = "1:1d4d45e798f55632a432b50637363c07fb87b3e612d8c68b29ba3392bd45fbd7"
   name = "github.com/integration-system/isp-lib"
   packages = [
     "backend",
     "bootstrap",
     "config",
     "config/schema",
+    "http",
     "logger",
     "metric",
     "proto/stubs",
@@ -172,14 +155,6 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "5475a8b08e62e41fa886641861ac225e7f91e4e5"
-
-[[projects]]
-  branch = "master"
-  digest = "1:3daa28dd53624e04229a3499b6bb547b4c467d488e8293b1fc9d67a922713896"
-  name = "github.com/joncalhoun/qson"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "8a9cab3a62b1b693e7dfa590a215dc6217552803"
 
 [[projects]]
   digest = "1:e4f630893d2bbf8c268eba14e7cc92ef8844ee259a45e21ea77cf7656544cb7e"
@@ -237,12 +212,12 @@
   version = "v0.1.1"
 
 [[projects]]
-  digest = "1:e150b5fafbd7607e2d638e4e5cf43aa4100124e5593385147b0a74e2733d8b0d"
+  digest = "1:9b90c7639a41697f3d4ad12d7d67dfacc9a7a4a6e0bbfae4fc72d0da57c28871"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c2a7a6ca930a4cd0bc33a3f298eb71960732a3a7"
-  version = "v0.0.7"
+  revision = "1311e847b0cb909da63b5fecfb5370aa66236465"
+  version = "v0.0.8"
 
 [[projects]]
   branch = "master"
@@ -388,7 +363,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8d6e2d89065f56a560ce647c05cc8add82ca5d214bcb6cc8b3f4e9329fa6898b"
+  digest = "1:02cd73c7a4b4fee2e8edb61b07629ffc03f7129b05340f404744fd5cad1d1845"
   name = "github.com/valyala/fasthttp"
   packages = [
     ".",
@@ -396,7 +371,7 @@
     "stackless",
   ]
   pruneopts = "UT"
-  revision = "46469b532d0621287a2184a890564a59a3d528f3"
+  revision = "c754e0ffba003900c7b3cc60194ba20985a3040c"
 
 [[projects]]
   digest = "1:39a425f98fb19427061a693fe6bf0683c9bddec4b25b17067e34fdb465e39cb9"
@@ -405,17 +380,6 @@
   pruneopts = "UT"
   revision = "bb2702d423886830dee131692131d35648c382e2"
   version = "v0.5.2"
-
-[[projects]]
-  branch = "master"
-  digest = "1:0e22ef3de0646283fa8f3e66bfc774641a3c9657c809ec86728a0f726f597190"
-  name = "github.com/zang-cloud/grpc-json"
-  packages = [
-    ".",
-    "jsonpb",
-  ]
-  pruneopts = "UT"
-  revision = "9c89c7bbf30146f315c3f48a5fbe76f28e7b7eb0"
 
 [[projects]]
   branch = "master"
@@ -443,14 +407,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:160e165ef13917405d1ebfde865cb9c292b8635f83655e3932662d5586d300ee"
+  digest = "1:76a8f15384d51164875fe295559d2e5a8180d67312bb040d0509b5b1114c0267"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "c432e742b0af385916e013f6a34e9e73d139cf82"
+  revision = "8097e1b27ff5e40620836729a9584e91b094b062"
 
 [[projects]]
   digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
@@ -479,13 +443,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e72127813850a8e54a33e2960c735656cb699e4108e53e6a6845af998652aa40"
+  digest = "1:a910255c3b706b4d8f2b185ed6b40c8f31b805111be240def2bdf2c62b87591b"
   name = "google.golang.org/genproto"
   packages = [
-    "googleapis/api/httpbody",
     "googleapis/rpc/errdetails",
     "googleapis/rpc/status",
-    "protobuf/field_mask",
   ]
   pruneopts = "UT"
   revision = "bb713bdc0e5239f2b68e560efbe1c701a6fe78f9"
@@ -544,11 +506,13 @@
   analyzer-version = 1
   input-imports = [
     "github.com/buaazp/fasthttprouter",
+    "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes/struct",
-    "github.com/grpc-ecosystem/grpc-gateway/runtime",
     "github.com/integration-system/isp-lib/backend",
     "github.com/integration-system/isp-lib/bootstrap",
     "github.com/integration-system/isp-lib/config",
+    "github.com/integration-system/isp-lib/config/schema",
+    "github.com/integration-system/isp-lib/http",
     "github.com/integration-system/isp-lib/logger",
     "github.com/integration-system/isp-lib/metric",
     "github.com/integration-system/isp-lib/proto/stubs",
@@ -559,7 +523,6 @@
     "github.com/pkg/errors",
     "github.com/rcrowley/go-metrics",
     "github.com/valyala/fasthttp",
-    "github.com/zang-cloud/grpc-json",
     "golang.org/x/net/context",
     "google.golang.org/genproto/googleapis/rpc/errdetails",
     "google.golang.org/grpc",

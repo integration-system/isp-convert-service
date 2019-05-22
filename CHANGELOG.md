@@ -1,3 +1,8 @@
+### v1.2.0
+* update libs
+* refactoring
+* add option to proxy error with proto marshaling
+* fix grpc error marshaling
 ### v1.1.1
 * fix content disposition
 ### v1.1.0

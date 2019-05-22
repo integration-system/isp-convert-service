@@ -3,8 +3,8 @@ package utils
 import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"github.com/integration-system/isp-convert-service/conf"
 	"github.com/integration-system/isp-lib/config"
+	"isp-convert-service/conf"
 	"net/http"
 	"strings"
 
@@ -12,8 +12,8 @@ import (
 	"isp-convert-service/structure"
 
 	"github.com/golang/protobuf/ptypes/struct"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/integration-system/isp-lib/backend"
+	http2 "github.com/integration-system/isp-lib/http"
 	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/proto/stubs"
 	"github.com/integration-system/isp-lib/utils"
@@ -65,8 +65,7 @@ func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestC
 	if err != nil {
 		s, ok := status.FromError(err)
 		if ok {
-			logger.Debug(err)
-			ctx.SetStatusCode(runtime.HTTPStatusFromCode(s.Code()))
+			ctx.SetStatusCode(http2.CodeToHttpStatus(s.Code()))
 			if config.GetRemote().(*conf.RemoteConfig).EnableOriginalProtoErrors {
 				msg, err := proto.Marshal(s.Proto())
 				if err != nil {
@@ -81,7 +80,8 @@ func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestC
 					switch typeOfDetail := detail.(type) {
 					case *structpb.Struct:
 						newDetails[i] = utils.ConvertGrpcStructToInterface(
-							&structpb.Value{Kind: &structpb.Value_StructValue{StructValue: typeOfDetail}})
+							&structpb.Value{Kind: &structpb.Value_StructValue{StructValue: typeOfDetail}},
+						)
 					default:
 						newDetails[i] = typeOfDetail
 					}
@@ -99,6 +99,7 @@ func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestC
 		}
 		return nil, nil
 	}
+
 	bytes := msg.GetBytesBody()
 	if bytes != nil {
 		return bytes, nil
