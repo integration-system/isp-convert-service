@@ -1,3 +1,5 @@
+### v1.3.0
+* add proxy original error bodies
 ### v1.2.0
 * update libs
 * refactoring

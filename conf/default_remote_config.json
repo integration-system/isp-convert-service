@@ -1,5 +1,6 @@
 {
   "enableOriginalProtoErrors": false,
+  "proxyGrpcErrorDetails": false,
   "metrics": {
     "address": {
       "ip": "0.0.0.0",

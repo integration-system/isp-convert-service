@@ -66,7 +66,8 @@ func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestC
 		s, ok := status.FromError(err)
 		if ok {
 			ctx.SetStatusCode(http2.CodeToHttpStatus(s.Code()))
-			if config.GetRemote().(*conf.RemoteConfig).EnableOriginalProtoErrors {
+			cfg := config.GetRemote().(*conf.RemoteConfig)
+			if cfg.EnableOriginalProtoErrors {
 				msg, err := proto.Marshal(s.Proto())
 				if err != nil {
 					writeServiceError(ctx, err)
@@ -86,9 +87,14 @@ func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestC
 						newDetails[i] = typeOfDetail
 					}
 				}
-				if errorData, err := json.Marshal(
-					structure.GrpcError{ErrorMessage: s.Message(), ErrorCode: s.Code().String(), Details: newDetails},
-				); err != nil {
+
+				var respBody interface{}
+				if cfg.ProxyGrpcErrorDetails && len(newDetails) > 0 {
+					respBody = newDetails[0]
+				} else {
+					respBody = structure.GrpcError{ErrorMessage: s.Message(), ErrorCode: s.Code().String(), Details: newDetails}
+				}
+				if errorData, err := json.Marshal(respBody); err != nil {
 					writeServiceError(ctx, err)
 				} else {
 					ctx.Write(errorData)
