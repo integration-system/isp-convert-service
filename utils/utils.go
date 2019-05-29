@@ -83,6 +83,10 @@ func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestC
 						newDetails[i] = utils.ConvertGrpcStructToInterface(
 							&structpb.Value{Kind: &structpb.Value_StructValue{StructValue: typeOfDetail}},
 						)
+					case *isp.Message:
+						newDetails[i] = utils.ConvertGrpcStructToInterface(
+							backend.ResolveBody(typeOfDetail),
+						)
 					default:
 						newDetails[i] = typeOfDetail
 					}
