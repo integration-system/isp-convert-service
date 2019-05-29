@@ -11,7 +11,7 @@ var (
 	RouterClient = backend.NewRxGrpcClient(
 		backend.WithDialOptions(grpc.WithInsecure(), grpc.WithBlock()),
 		backend.WithDialingErrorHandler(func(err error) {
-			logger.Error("router dialing err: %v", err)
+			logger.Errorf("router dialing err: %v", err)
 		}),
 	)
 )
