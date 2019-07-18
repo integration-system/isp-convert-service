@@ -9,5 +9,14 @@
     },
     "gc": true,
     "memory": true
+  },
+  "journal": {
+    "enableRemoteTransfer": true,
+    "enable": false,
+    "compress": true,
+    "filename": "/var/log/isp-convert-service/runtime.log",
+    "maxSizeMb": 512,
+    "bufferSize": 4096,
+    "rotateTimeoutMs": 86400000
   }
 }

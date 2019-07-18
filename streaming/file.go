@@ -25,14 +25,8 @@ import (
 
 func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 	cfg := config.GetRemote().(*conf.RemoteConfig)
-	timeout := time.Duration(cfg.MultipartDataTransferTimeoutMs) * time.Millisecond
-	bufferSize := cfg.MultipartDataTransferBufferSizeBytes
-	if timeout <= 0 {
-		timeout = utils.DefaultTransferTimeout
-	}
-	if bufferSize <= 0 {
-		bufferSize = utils.DefaultBufferSize
-	}
+	timeout := cfg.GetStreamInvokeTimeout()
+	bufferSize := cfg.GetTransferFileBufferSize()
 
 	stream, cancel, err := openStream(&ctx.Request.Header, method, timeout)
 	defer cancel()
@@ -72,7 +66,8 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 		fileName := file.Filename
 		contentType := file.Header.Get("Content-Type")
 		contentLength := file.Size
-		bf := s.BeginFile{FileName: fileName,
+		bf := s.BeginFile{
+			FileName:      fileName,
 			FormDataName:  formDataName,
 			ContentType:   contentType,
 			ContentLength: contentLength,
@@ -117,10 +112,7 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 
 func GetFile(ctx *fasthttp.RequestCtx, method string) {
 	cfg := config.GetRemote().(*conf.RemoteConfig)
-	timeout := time.Duration(cfg.MultipartDataTransferTimeoutMs)
-	if timeout <= 0 {
-		timeout = utils.DefaultTransferTimeout
-	}
+	timeout := cfg.GetStreamInvokeTimeout()
 
 	req, err := utils.ReadJsonBody(ctx)
 	if err != nil {
@@ -191,7 +183,7 @@ func openStream(headers *fasthttp.RequestHeader, method string, timeout time.Dur
 	if err != nil {
 		return nil, nil, err
 	}
-	md := utils.MakeMetadata(headers, method)
+	md, _ := utils.MakeMetadata(headers, method)
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	stream, err := client.RequestStream(ctx)

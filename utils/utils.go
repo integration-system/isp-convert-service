@@ -22,17 +22,10 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"time"
 )
 
 const (
 	JsonContentType = "application/json; charset=utf-8"
-
-	KB                        = int64(1024)
-	MB                        = int64(1 << 20)
-	DefaultBufferSize         = 4 * KB
-	DefaultMaxRequestBodySize = 512 * MB
-	DefaultTransferTimeout    = 1 * time.Minute
 )
 
 var (
@@ -120,10 +113,8 @@ func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestC
 	return byteResponse, err
 }
 
-func MakeMetadata(r *fasthttp.RequestHeader, method string) metadata.MD {
-	if strings.HasPrefix(method, "/api/") {
-		method = strings.TrimPrefix(method, "/api/")
-	}
+func MakeMetadata(r *fasthttp.RequestHeader, method string) (metadata.MD, string) {
+	method = strings.TrimPrefix(method, "/api/")
 	md := metadata.Pairs(utils.ProxyMethodNameHeader, method)
 	r.VisitAll(func(key, v []byte) {
 		lowerHeader := strings.ToLower(string(key))
@@ -131,7 +122,7 @@ func MakeMetadata(r *fasthttp.RequestHeader, method string) metadata.MD {
 			md = metadata.Join(md, metadata.Pairs(lowerHeader, string(v)))
 		}
 	})
-	return md
+	return md, method
 }
 
 func WriteAndLogError(message string, err error, ctx *fasthttp.RequestCtx, code int) {

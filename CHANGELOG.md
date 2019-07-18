@@ -1,3 +1,6 @@
+### v1.4.0
+* add `isp-journal` for logging invocation results
+* add configs for timeout 
 ### v1.3.1
 * add proxy original error bodies
 ### v1.2.0

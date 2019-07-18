@@ -1,7 +1,11 @@
 package controllers
 
 import (
+	"github.com/integration-system/isp-lib/config"
+	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/proto/stubs"
+	"isp-convert-service/conf"
+	"isp-convert-service/journal"
 	"isp-convert-service/service"
 	"mime"
 	"net/http"
@@ -26,7 +30,7 @@ func HandlerAllRequest(ctx *fasthttp.RequestCtx) {
 	executionTime := time.Since(currentTime) / 1e6
 	metrics := service.GetMetrics()
 	metrics.UpdateStatusCounter(ctx.Response.StatusCode())
-	if ctx.Response.StatusCode() == 200 {
+	if ctx.Response.StatusCode() == http.StatusOK {
 		metrics.UpdateResponseTime(executionTime)
 		metrics.UpdateMethodResponseTime(uri, executionTime)
 	}
@@ -40,9 +44,10 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 		return
 	}*/
 
-	md := utils.MakeMetadata(&c.Request.Header, method)
+	md, methodName := utils.MakeMetadata(&c.Request.Header, method)
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	cfg := config.GetRemote().(*conf.RemoteConfig)
+	ctx, cancel := context.WithTimeout(ctx, cfg.GetSyncInvokeTimeout())
 	defer cancel()
 
 	client, err := utils.GetGrpcClient()
@@ -53,15 +58,26 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 
 	//structBody := u.ConvertInterfaceToGrpcStruct(body)
 	currentTime := time.Now()
-	response, err := client.Request(ctx, &isp.Message{
+	response, invokerErr := client.Request(ctx, &isp.Message{
 		Body: &isp.Message_BytesBody{
 			BytesBody: []byte(body),
 		},
 	})
 	service.GetMetrics().UpdateRouterResponseTime(time.Since(currentTime) / 1e6)
 
-	if data, err := utils.ConvertAndWriteResponse(response, err, c); err == nil {
+	if data, err := utils.ConvertAndWriteResponse(response, invokerErr, c); err == nil {
 		_, _ = c.Write(data)
+		if cfg.Journal.Enable && service.JournalMethodsMatcher.Match(methodName) {
+			if invokerErr != nil {
+				if err := journal.Client.Error(methodName, body, data, invokerErr); err != nil {
+					logger.Warnf("could not write to file journal: %v", err)
+				}
+			} else {
+				if err := journal.Client.Info(methodName, body, data); err != nil {
+					logger.Warnf("could not write to file journal: %v", err)
+				}
+			}
+		}
 	} else {
 		utils.WriteAndLogError("Internal server error", err, c, http.StatusInternalServerError)
 	}

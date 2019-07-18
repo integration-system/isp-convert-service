@@ -4,6 +4,7 @@ import (
 	"github.com/integration-system/isp-lib/config/schema"
 	"github.com/integration-system/isp-lib/structure"
 	"isp-convert-service/controllers"
+	"isp-convert-service/journal"
 	"isp-convert-service/service"
 	"os"
 	"sync"
@@ -19,7 +20,6 @@ import (
 	"github.com/integration-system/isp-lib/metric"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/net/context"
-	u "isp-convert-service/utils"
 )
 
 var (
@@ -38,6 +38,7 @@ func main() {
 		SocketConfiguration(socketConfiguration).
 		DeclareMe(routesData).
 		RequireModule("router", invoker.HandleRoutesAddresses, true).
+		RequireModule("journal", journal.ReceiveJournalServiceAddressList, false).
 		OnShutdown(onShutdown).
 		OnRemoteConfigReceive(onRemoteConfigReceive).
 		Run()
@@ -48,6 +49,11 @@ func onLocalConfigLoad(cfg *conf.Configuration) {
 }
 
 func onRemoteConfigReceive(cfg, oldRemoteConfig *conf.RemoteConfig) {
+	localCfg := config.Get().(*conf.Configuration)
+	journal.Client.ReceiveConfiguration(cfg.Journal, localCfg.ModuleName)
+
+	service.JournalMethodsMatcher = service.NewCacheableMethodMatcher(cfg.JournalingMethodsPatterns)
+
 	createRestServer(cfg)
 	metric.InitCollectors(cfg.Metrics, oldRemoteConfig.Metrics)
 	metric.InitHttpServer(cfg.Metrics)
@@ -62,10 +68,7 @@ func createRestServer(appConfig *conf.RemoteConfig) {
 	router.Handle("POST", "/api/*any", controllers.HandlerAllRequest)
 	router.Handle("GET", "/api/*any", controllers.HandlerAllRequest)
 
-	maxRequestBodySize := appConfig.MaxRequestBodySizeBytes
-	if appConfig.MaxRequestBodySizeBytes <= 0 {
-		maxRequestBodySize = u.DefaultMaxRequestBodySize
-	}
+	maxRequestBodySize := appConfig.GetMaxRequestBodySize()
 
 	srvLock.Lock()
 
