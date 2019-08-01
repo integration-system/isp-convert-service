@@ -1,3 +1,5 @@
+### v1.4.1
+* fix response error
 ### v1.4.0
 * add `isp-journal` for logging invocation results
 * add configs for timeout 

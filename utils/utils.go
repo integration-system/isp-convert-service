@@ -56,51 +56,10 @@ func ReadJsonBody(ctx *fasthttp.RequestCtx) (interface{}, error) {
 
 func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestCtx) ([]byte, error) {
 	if err != nil {
-		s, ok := status.FromError(err)
-		if ok {
-			ctx.SetStatusCode(http2.CodeToHttpStatus(s.Code()))
-			cfg := config.GetRemote().(*conf.RemoteConfig)
-			if cfg.EnableOriginalProtoErrors {
-				msg, err := proto.Marshal(s.Proto())
-				if err != nil {
-					writeServiceError(ctx, err)
-				} else {
-					ctx.Write(msg)
-				}
-			} else {
-				details := s.Details()
-				newDetails := make([]interface{}, len(details))
-				for i, detail := range details {
-					switch typeOfDetail := detail.(type) {
-					case *structpb.Struct:
-						newDetails[i] = utils.ConvertGrpcStructToInterface(
-							&structpb.Value{Kind: &structpb.Value_StructValue{StructValue: typeOfDetail}},
-						)
-					case *isp.Message:
-						newDetails[i] = utils.ConvertGrpcStructToInterface(
-							backend.ResolveBody(typeOfDetail),
-						)
-					default:
-						newDetails[i] = typeOfDetail
-					}
-				}
-
-				var respBody interface{}
-				if cfg.ProxyGrpcErrorDetails && len(newDetails) > 0 {
-					respBody = newDetails[0]
-				} else {
-					respBody = structure.GrpcError{ErrorMessage: s.Message(), ErrorCode: s.Code().String(), Details: newDetails}
-				}
-				if errorData, err := json.Marshal(respBody); err != nil {
-					writeServiceError(ctx, err)
-				} else {
-					ctx.Write(errorData)
-				}
-			}
-		} else {
-			writeServiceError(ctx, err)
-		}
-		return nil, nil
+		errorBody, errorStatus := convertError(err)
+		ctx.SetStatusCode(errorStatus)
+		_, _ = ctx.Write(errorBody)
+		return errorBody, nil
 	}
 
 	bytes := msg.GetBytesBody()
@@ -136,8 +95,48 @@ func GetGrpcClient() (isp.BackendServiceClient, error) {
 	return invoker.RouterClient.Conn()
 }
 
-func writeServiceError(ctx *fasthttp.RequestCtx, err error) {
-	logger.Warn(err)
-	ctx.SetStatusCode(http.StatusServiceUnavailable)
-	ctx.Write([]byte(utils.ServiceError))
+func convertError(err error) ([]byte, int) {
+	s, ok := status.FromError(err)
+	if ok {
+		cfg := config.GetRemote().(*conf.RemoteConfig)
+		if cfg.EnableOriginalProtoErrors {
+			if body, err := proto.Marshal(s.Proto()); err != nil {
+				return []byte(utils.ServiceError), http.StatusServiceUnavailable
+			} else {
+				return body, http2.CodeToHttpStatus(s.Code())
+			}
+		} else {
+			details := s.Details()
+			newDetails := make([]interface{}, len(details))
+			for i, detail := range details {
+				switch typeOfDetail := detail.(type) {
+				case *structpb.Struct:
+					newDetails[i] = utils.ConvertGrpcStructToInterface(
+						&structpb.Value{Kind: &structpb.Value_StructValue{StructValue: typeOfDetail}},
+					)
+				case *isp.Message:
+					newDetails[i] = utils.ConvertGrpcStructToInterface(
+						backend.ResolveBody(typeOfDetail),
+					)
+				default:
+					newDetails[i] = typeOfDetail
+				}
+			}
+
+			var respBody interface{}
+			if cfg.ProxyGrpcErrorDetails && len(newDetails) > 0 {
+				respBody = newDetails[0]
+			} else {
+				respBody = structure.GrpcError{ErrorMessage: s.Message(), ErrorCode: s.Code().String(), Details: newDetails}
+			}
+			if errorData, err := json.Marshal(respBody); err != nil {
+				logger.Warn(err)
+				return []byte(utils.ServiceError), http.StatusServiceUnavailable
+			} else {
+				return errorData, http2.CodeToHttpStatus(s.Code())
+			}
+		}
+	} else {
+		return []byte(utils.ServiceError), http.StatusServiceUnavailable
+	}
 }
