@@ -1,3 +1,5 @@
+### v1.4.2
+* fix double write to `http.Context`
 ### v1.4.1
 * fix response error
 ### v1.4.0

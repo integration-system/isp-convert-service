@@ -65,7 +65,8 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 	})
 	service.GetMetrics().UpdateRouterResponseTime(time.Since(currentTime) / 1e6)
 
-	if data, err := utils.ConvertAndWriteResponse(response, invokerErr, c); err == nil {
+	if data, status, err := utils.GetResponse(response, invokerErr); err == nil {
+		c.SetStatusCode(status)
 		_, _ = c.Write(data)
 		if cfg.Journal.Enable && service.JournalMethodsMatcher.Match(methodName) {
 			if invokerErr != nil {

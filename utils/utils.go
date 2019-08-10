@@ -54,22 +54,20 @@ func ReadJsonBody(ctx *fasthttp.RequestCtx) (interface{}, error) {
 	return body, err
 }
 
-func ConvertAndWriteResponse(msg *isp.Message, err error, ctx *fasthttp.RequestCtx) ([]byte, error) {
+func GetResponse(msg *isp.Message, err error) ([]byte, int, error) {
 	if err != nil {
 		errorBody, errorStatus := convertError(err)
-		ctx.SetStatusCode(errorStatus)
-		_, _ = ctx.Write(errorBody)
-		return errorBody, nil
+		return errorBody, errorStatus, nil
 	}
 
 	bytes := msg.GetBytesBody()
 	if bytes != nil {
-		return bytes, nil
+		return bytes, http.StatusOK, nil
 	}
 	result := backend.ResolveBody(msg)
 	data := utils.ConvertGrpcStructToInterface(result)
 	byteResponse, err := json.Marshal(data)
-	return byteResponse, err
+	return byteResponse, http.StatusOK, err
 }
 
 func MakeMetadata(r *fasthttp.RequestHeader, method string) (metadata.MD, string) {

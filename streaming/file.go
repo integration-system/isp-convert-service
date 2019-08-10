@@ -84,7 +84,7 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 		}
 		if ok, eof = transferFile(f, stream, buffer, ctx); ok {
 			msg, err := stream.Recv()
-			v, err := utils.ConvertAndWriteResponse(msg, err, ctx)
+			v, _, err := utils.GetResponse(msg, err)
 			if err == nil {
 				response = append(response, string(v))
 			}
@@ -138,13 +138,21 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 
 	msg, err := stream.Recv()
 	if err != nil {
-		utils.ConvertAndWriteResponse(nil, err, ctx)
+		bytes, status, err := utils.GetResponse(nil, err)
+		if err == nil {
+			ctx.SetStatusCode(status)
+			ctx.SetBody(bytes)
+		}
 		return
 	}
 	bf := s.BeginFile{}
 	err = bf.FromMessage(msg)
 	if err != nil {
-		utils.ConvertAndWriteResponse(nil, err, ctx)
+		bytes, status, err := utils.GetResponse(nil, err)
+		if err == nil {
+			ctx.SetStatusCode(status)
+			ctx.SetBody(bytes)
+		}
 		return
 	}
 	header := &ctx.Response.Header
