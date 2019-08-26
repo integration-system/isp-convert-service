@@ -1,3 +1,6 @@
+### v1.4.3
+* update config description
+* update lib
 ### v1.4.2
 * fix double write to `http.Context`
 ### v1.4.1

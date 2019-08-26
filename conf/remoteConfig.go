@@ -18,15 +18,15 @@ const (
 )
 
 type RemoteConfig struct {
-	EnableOriginalProtoErrors            bool                          `schema:"Proxy error to protobuf, default: false"`
-	ProxyGrpcErrorDetails                bool                          `schema:"Proxy first element from GRPC error details, default: false"`
-	MultipartDataTransferBufferSizeBytes int64                         `schema:"Multipart data transfer buffer size,In bytes, default: 4 KB"`
-	MaxRequestBodySizeBytes              int64                         `schema:"Max request body size,In bytes, default: 512 MB"`
-	SyncInvokeMethodTimeoutMs            int64                         `schema:"Timeout to invoke sync method, default: 30000"`
-	StreamInvokeMethodTimeoutMs          int64                         `schema:"Timeout to transfer and handle file, default: 60000"`
-	Metrics                              structure.MetricConfiguration `schema:"Metrics"`
-	Journal                              rx.Config                     `schema:"Journal"`
-	JournalingMethodsPatterns            []string                      `schema:"Journaling methods patterns"`
+	EnableOriginalProtoErrors            bool                          `schema:"Проксирование ошибок в протобаф,включение/отключение проксирования, по умолчанию отключено"`
+	ProxyGrpcErrorDetails                bool                          `schema:"Проксирование первого элемента из details GRPC ошибки,включение/отключение проксирования, по умолчанию отключено"`
+	MultipartDataTransferBufferSizeBytes int64                         `schema:"Размер буфера для передачи бинарных файлов,по умолчанию 4 KB"`
+	MaxRequestBodySizeBytes              int64                         `schema:"Максимальный размер тела запроса,в байтайх, по умолчанию: 512 MB"`
+	SyncInvokeMethodTimeoutMs            int64                         `schema:"Время ожидания вызова метода,значение в миллисекундах, по умолчанию: 30000"`
+	StreamInvokeMethodTimeoutMs          int64                         `schema:"Время ожидания передачи и обработки файла,значение в миллисекундах, по умолчанию: 60000"`
+	Metrics                              structure.MetricConfiguration `schema:"Настройка метрик"`
+	Journal                              rx.Config                     `schema:"Настройка логирования"`
+	JournalingMethodsPatterns            []string                      `schema:"Список методов для логирования,список строк вида: 'module/group/method'(* - для частичного совпадения). При обработке запроса, если вызываемый метод совпадает со строкой из списка, тела запроса и ответа записываются в лог"`
 }
 
 func (cfg RemoteConfig) GetSyncInvokeTimeout() time.Duration {
