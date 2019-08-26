@@ -136,7 +136,7 @@
   revision = "3daf588d878f287976f55a53917d535f787b7d64"
 
 [[projects]]
-  digest = "1:5f307406b1aa1abe5eb7a63cb9bd17ce50b36e0f5e8610ef4563ec3ef3c3db67"
+  digest = "1:0a8ffa1b2b75f5d24b983b9854c505a810debf5a4d5560ea5081f61bd99aae51"
   name = "github.com/integration-system/isp-journal"
   packages = [
     ".",
@@ -146,8 +146,8 @@
     "transfer",
   ]
   pruneopts = "UT"
-  revision = "2b0c9346bef3a5490e0fc597f564a655d8f63154"
-  version = "v1.1.1"
+  revision = "aee75c5fa5fc51cbdc328923db2f8be89a958774"
+  version = "v1.1.2"
 
 [[projects]]
   digest = "1:808d6f25593352ec288e92733a41134ccca8bc101b6d1dfbd1dd52c677beb1cc"
