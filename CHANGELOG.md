@@ -1,3 +1,5 @@
+### v1.4.4
+* add default receive message size
 ### v1.4.3
 * update config description
 * update lib

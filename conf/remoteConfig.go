@@ -13,8 +13,9 @@ const (
 	defaultSyncTimeout   = 30 * time.Second
 	defaultStreamTimeout = 60 * time.Second
 
-	defaultBufferSize         = 4 * KB
-	defaultMaxRequestBodySize = 512 * MB
+	defaultBufferSize          = 4 * KB
+	defaultMaxRequestBodySize  = 512 * MB
+	DefaultMaxResponseBodySize = 32 * MB
 )
 
 type RemoteConfig struct {

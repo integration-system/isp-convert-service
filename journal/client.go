@@ -6,11 +6,15 @@ import (
 	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/structure"
 	"google.golang.org/grpc"
+	"isp-convert-service/conf"
 )
 
 var (
 	journalServiceClient = backend.NewRxGrpcClient(
-		backend.WithDialOptions(grpc.WithInsecure(), grpc.WithBlock()),
+		backend.WithDialOptions(
+			grpc.WithInsecure(), grpc.WithBlock(),
+			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(int(conf.DefaultMaxResponseBodySize))),
+		),
 		backend.WithDialingErrorHandler(func(err error) {
 			logger.Warnf("journal client dialing err: %v", err)
 		}),
