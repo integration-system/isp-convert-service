@@ -58,11 +58,12 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 
 	//structBody := u.ConvertInterfaceToGrpcStruct(body)
 	currentTime := time.Now()
-	response, invokerErr := client.Request(ctx, &isp.Message{
-		Body: &isp.Message_BytesBody{
-			BytesBody: []byte(body),
+	response, invokerErr := client.Request(
+		ctx,
+		&isp.Message{
+			Body: &isp.Message_BytesBody{BytesBody: body},
 		},
-	})
+	)
 	service.GetMetrics().UpdateRouterResponseTime(time.Since(currentTime) / 1e6)
 
 	if data, status, err := utils.GetResponse(response, invokerErr); err == nil {
