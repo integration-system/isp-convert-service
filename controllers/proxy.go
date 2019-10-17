@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"github.com/integration-system/isp-lib/config"
-	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/proto/stubs"
+	log "github.com/integration-system/isp-log"
+	"google.golang.org/grpc/codes"
 	"isp-convert-service/conf"
 	"isp-convert-service/journal"
+	"isp-convert-service/log_code"
 	"isp-convert-service/service"
 	"mime"
 	"net/http"
@@ -40,7 +42,8 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 	//body, err := utils.ReadJsonBody(c)
 	body := c.Request.Body()
 	/*if err != nil {
-		utils.WriteAndLogError(err.Error(), err, c, http.StatusBadRequest)
+		streaming.LogError(log_code.TypeData.JsonContent, method, err)
+		streaming.SendError(err.Error(), codes.InvalidArgument, []interface{}{err.Error()}, c)
 		return
 	}*/
 
@@ -52,7 +55,8 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 
 	client, err := utils.GetGrpcClient()
 	if err != nil {
-		utils.WriteAndLogError("Internal server error", err, c, http.StatusInternalServerError)
+		utils.LogRequestHandlerError(log_code.TypeData.JsonContent, methodName, err)
+		utils.SendError(streaming.ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, c)
 		return
 	}
 
@@ -72,16 +76,17 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 		if cfg.Journal.Enable && service.JournalMethodsMatcher.Match(methodName) {
 			if invokerErr != nil {
 				if err := journal.Client.Error(methodName, body, data, invokerErr); err != nil {
-					logger.Warnf("could not write to file journal: %v", err)
+					log.Warnf(log_code.WarnJournalCouldNotWriteToFile, "could not write to file journal: %v", err)
 				}
 			} else {
 				if err := journal.Client.Info(methodName, body, data); err != nil {
-					logger.Warnf("could not write to file journal: %v", err)
+					log.Warnf(log_code.WarnJournalCouldNotWriteToFile, "could not write to file journal: %v", err)
 				}
 			}
 		}
 	} else {
-		utils.WriteAndLogError("Internal server error", err, c, http.StatusInternalServerError)
+		utils.LogRequestHandlerError(log_code.TypeData.JsonContent, methodName, err)
+		utils.SendError(streaming.ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, c)
 	}
 }
 

@@ -2,10 +2,11 @@ package invoker
 
 import (
 	"github.com/integration-system/isp-lib/backend"
-	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/structure"
+	log "github.com/integration-system/isp-log"
 	"google.golang.org/grpc"
 	"isp-convert-service/conf"
+	"isp-convert-service/log_code"
 )
 
 var (
@@ -16,14 +17,13 @@ var (
 			grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(int(conf.DefaultMaxResponseBodySize))),
 		),
 		backend.WithDialingErrorHandler(func(err error) {
-			logger.Errorf("router dialing err: %v", err)
+			log.Errorf(log_code.ErrorRouterClientDialing, "router dialing err: %v", err)
 		}),
 	)
 )
 
 func HandleRoutesAddresses(list []structure.AddressConfiguration) bool {
 	if RouterClient.ReceiveAddressList(list) {
-		logger.Infof("Successfully connected to routes: %v", list)
 		return true
 	}
 	return false

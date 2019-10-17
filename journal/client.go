@@ -3,16 +3,17 @@ package journal
 import (
 	"github.com/integration-system/isp-journal/rx"
 	"github.com/integration-system/isp-lib/backend"
-	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/structure"
+	log "github.com/integration-system/isp-log"
 	"google.golang.org/grpc"
+	"isp-convert-service/log_code"
 )
 
 var (
 	journalServiceClient = backend.NewRxGrpcClient(
 		backend.WithDialOptions(grpc.WithInsecure(), grpc.WithBlock()),
 		backend.WithDialingErrorHandler(func(err error) {
-			logger.Warnf("journal client dialing err: %v", err)
+			log.Warnf(log_code.WarnJournalClientDialing, "journal client dialing err: %v", err)
 		}),
 	)
 	Client = rx.NewDefaultRxJournal(journalServiceClient)

@@ -1,3 +1,5 @@
+### v1.4.6
+* update to new log
 ### v1.4.5
 * add default grpc message size
 ### v1.4.4

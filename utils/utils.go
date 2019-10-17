@@ -1,20 +1,21 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/integration-system/isp-lib/config"
+	"github.com/integration-system/isp-lib/structure"
+	log "github.com/integration-system/isp-log"
+	"google.golang.org/grpc/codes"
 	"isp-convert-service/conf"
+	"isp-convert-service/log_code"
 	"net/http"
 	"strings"
 
 	"isp-convert-service/invoker"
-	"isp-convert-service/structure"
 
 	"github.com/golang/protobuf/ptypes/struct"
 	"github.com/integration-system/isp-lib/backend"
 	http2 "github.com/integration-system/isp-lib/http"
-	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/proto/stubs"
 	"github.com/integration-system/isp-lib/utils"
 	"github.com/json-iterator/go"
@@ -82,11 +83,25 @@ func MakeMetadata(r *fasthttp.RequestHeader, method string) (metadata.MD, string
 	return md, method
 }
 
-func WriteAndLogError(message string, err error, ctx *fasthttp.RequestCtx, code int) {
-	logger.Warn(message, err)
+func LogRequestHandlerError(typeData, method string, err error) {
+	log.WithMetadata(map[string]interface{}{
+		log_code.MdTypeData: typeData,
+		log_code.MdMethod:   method,
+	}).Warn(log_code.WarnRequestHandler, err)
+}
 
-	ctx.SetStatusCode(code)
-	ctx.Write([]byte(fmt.Sprintf("{\"errorMessage\": \"%s\"}", message)))
+func SendError(errorMessage string, errorCode codes.Code, details []interface{}, ctx *fasthttp.RequestCtx) {
+	grpcCode := errorCode.String()
+
+	structureError := structure.GrpcError{
+		ErrorMessage: errorMessage,
+		ErrorCode:    grpcCode,
+		Details:      details,
+	}
+
+	ctx.SetStatusCode(http2.CodeToHttpStatus(errorCode))
+	msg, _ := json.Marshal(structureError)
+	_, _ = ctx.Write(msg)
 }
 
 func GetGrpcClient() (isp.BackendServiceClient, error) {
@@ -128,7 +143,7 @@ func convertError(err error) ([]byte, int) {
 				respBody = structure.GrpcError{ErrorMessage: s.Message(), ErrorCode: s.Code().String(), Details: newDetails}
 			}
 			if errorData, err := json.Marshal(respBody); err != nil {
-				logger.Warn(err)
+				log.Warn(log_code.WarnConvertErrorDataMarshalResponse, err)
 				return []byte(utils.ServiceError), http.StatusServiceUnavailable
 			} else {
 				return errorData, http2.CodeToHttpStatus(s.Code())
