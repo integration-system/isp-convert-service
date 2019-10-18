@@ -2,9 +2,12 @@ package streaming
 
 import (
 	"fmt"
+	log "github.com/integration-system/isp-log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"io"
+	"isp-convert-service/log_code"
 	"mime/multipart"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -14,13 +17,21 @@ import (
 
 	"github.com/integration-system/isp-lib/backend"
 	"github.com/integration-system/isp-lib/config"
-	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/proto/stubs"
 	s "github.com/integration-system/isp-lib/streaming"
 	u "github.com/integration-system/isp-lib/utils"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc/metadata"
+)
+
+const (
+	headerKeyContentDisposition = "Content-Disposition"
+	headerKeyContentType        = "Content-Type"
+	headerKeyContentLength      = "Content-Length"
+	headerKeyTransferEncoding   = "Transfer-Encoding"
+
+	ErrorMsgInternal   = "Internal server error"
+	ErrorMsgInvalidArg = "Not able to read request body"
 )
 
 func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
@@ -29,20 +40,26 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 	bufferSize := cfg.GetTransferFileBufferSize()
 
 	stream, cancel, err := openStream(&ctx.Request.Header, method, timeout)
-	defer cancel()
+	defer func() {
+		if cancel != nil {
+			cancel()
+		}
+	}()
 	if err != nil {
-		utils.WriteAndLogError("Internal server error", err, ctx, http.StatusInternalServerError)
+		utils.LogRequestHandlerError(log_code.TypeData.ProxyMultipart, method, err)
+		utils.SendError(ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, ctx)
 		return
 	}
 
 	form, err := ctx.MultipartForm()
 	defer func() {
 		if form != nil {
-			form.RemoveAll()
+			_ = form.RemoveAll()
 		}
 	}()
 	if err != nil {
-		utils.WriteAndLogError("Not able to read request body", err, ctx, http.StatusBadRequest)
+		utils.LogRequestHandlerError(log_code.TypeData.ProxyMultipart, method, err)
+		utils.SendError(ErrorMsgInvalidArg, codes.InvalidArgument, []interface{}{err.Error()}, ctx)
 		return
 	}
 
@@ -64,7 +81,7 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 		}
 		file := files[0]
 		fileName := file.Filename
-		contentType := file.Header.Get("Content-Type")
+		contentType := file.Header.Get(headerKeyContentType)
 		contentLength := file.Size
 		bf := s.BeginFile{
 			FileName:      fileName,
@@ -98,14 +115,14 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 
 	err = stream.CloseSend()
 	if err != nil {
-		logger.Warn(err)
+		utils.LogRequestHandlerError(log_code.TypeData.ProxyMultipart, method, err)
 	}
 
 	if ok {
 		arrayBody := strings.Join(response, ",")
 		_, err = ctx.WriteString("[" + arrayBody + "]")
 		if err != nil {
-			logger.Warn(err)
+			utils.LogRequestHandlerError(log_code.TypeData.ProxyMultipart, method, err)
 		}
 	}
 }
@@ -116,14 +133,20 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 
 	req, err := utils.ReadJsonBody(ctx)
 	if err != nil {
-		utils.WriteAndLogError(err.Error(), err, ctx, http.StatusBadRequest)
+		utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
+		utils.SendError(err.Error(), codes.InvalidArgument, nil, ctx)
 		return
 	}
 
 	stream, cancel, err := openStream(&ctx.Request.Header, method, timeout)
-	defer cancel()
+	defer func() {
+		if cancel != nil {
+			cancel()
+		}
+	}()
 	if err != nil {
-		utils.WriteAndLogError("Internal server error", err, ctx, http.StatusInternalServerError)
+		utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
+		utils.SendError(ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, ctx)
 		return
 	}
 
@@ -131,7 +154,8 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 		value := u.ConvertInterfaceToGrpcStruct(req)
 		err := stream.Send(backend.WrapBody(value))
 		if err != nil {
-			utils.WriteAndLogError("Internal server error", err, ctx, http.StatusInternalServerError)
+			utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
+			utils.SendError(ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, ctx)
 			return
 		}
 	}
@@ -156,12 +180,12 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 		return
 	}
 	header := &ctx.Response.Header
-	header.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", bf.FileName))
-	header.Set("Content-Type", bf.ContentType)
+	header.Set(headerKeyContentDisposition, fmt.Sprintf("attachment; filename=%s", bf.FileName))
+	header.Set(headerKeyContentType, bf.ContentType)
 	if bf.ContentLength > 0 {
-		header.Set("Content-Length", strconv.Itoa(int(bf.ContentLength)))
+		header.Set(headerKeyContentLength, strconv.Itoa(int(bf.ContentLength)))
 	} else {
-		header.Set("Transfer-Encoding", "chunked")
+		header.Set(headerKeyTransferEncoding, "chunked")
 	}
 
 	for {
@@ -170,17 +194,20 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 			break
 		}
 		if err != nil {
-			logger.Warn(err)
+			utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
 			break
 		}
 		bytes := msg.GetBytesBody()
 		if bytes == nil {
-			logger.Errorf("Method %s. Expected bytes array", method)
+			log.WithMetadata(map[string]interface{}{
+				log_code.MdTypeData: log_code.TypeData.DownloadFile,
+				log_code.MdMethod:   method,
+			}).Errorf(log_code.WarnRequestHandler, "method %s. expected bytes array", method)
 			break
 		}
 		_, err = ctx.Write(bytes)
 		if err != nil {
-			logger.Warn(err)
+			utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
 			break
 		}
 	}
@@ -226,7 +253,8 @@ func transferFile(f multipart.File, stream isp.BackendService_RequestStreamClien
 func checkError(err error, ctx *fasthttp.RequestCtx) (bool, bool) {
 	if err != nil {
 		if err != io.EOF {
-			utils.WriteAndLogError("Internal server error", err, ctx, http.StatusInternalServerError)
+			utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, "", err)
+			utils.SendError(ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, ctx)
 			return false, false
 		}
 		return true, true

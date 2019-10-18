@@ -5,6 +5,7 @@ import (
 	"github.com/integration-system/isp-lib/structure"
 	"isp-convert-service/controllers"
 	"isp-convert-service/journal"
+	"isp-convert-service/log_code"
 	"isp-convert-service/service"
 	"os"
 	"sync"
@@ -16,8 +17,8 @@ import (
 	"github.com/buaazp/fasthttprouter"
 	"github.com/integration-system/isp-lib/bootstrap"
 	"github.com/integration-system/isp-lib/config"
-	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/metric"
+	log "github.com/integration-system/isp-log"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/net/context"
 )
@@ -45,7 +46,7 @@ func main() {
 }
 
 func onLocalConfigLoad(cfg *conf.Configuration) {
-	logger.Infof("Outer http address is %s", cfg.HttpOuterAddress.GetAddress())
+	log.Infof(log_code.InfoOnLocalConfigLoad, "outer http address is %s", cfg.HttpOuterAddress.GetAddress())
 }
 
 func onRemoteConfigReceive(cfg, oldRemoteConfig *conf.RemoteConfig) {
@@ -74,7 +75,7 @@ func createRestServer(appConfig *conf.RemoteConfig) {
 
 	if httpSrv != nil {
 		if err := httpSrv.Shutdown(); err != nil {
-			logger.Warn(err)
+			log.Warn(log_code.WarnCreateRestServerHttpSrvShutdown, err)
 		}
 	}
 
@@ -86,10 +87,9 @@ func createRestServer(appConfig *conf.RemoteConfig) {
 		ReadTimeout:        time.Second * 60,
 		MaxRequestBodySize: int(maxRequestBodySize),
 	}
-	logger.Infof("Serving at %s ...", restAddress)
 	go func() {
 		if err := httpSrv.ListenAndServe(restAddress); err != nil {
-			logger.Error(err)
+			log.Error(log_code.ErrorCreateRestServerHttpSrvListenAndServe, err)
 		}
 	}()
 
