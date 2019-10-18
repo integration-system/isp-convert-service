@@ -7,16 +7,16 @@ const (
 
 var (
 	TypeData = typeData{
-		SendMultipart: "sendMultipart",
-		GetFile:       "getFile",
-		JsonContent:   "jsonContent",
+		ProxyMultipart: "proxy_multipart",
+		DownloadFile:   "download_file",
+		MethodInvoke:   "api_invoke",
 	}
 )
 
 type (
 	typeData struct {
-		SendMultipart string
-		GetFile       string
-		JsonContent   string
+		ProxyMultipart string
+		DownloadFile   string
+		MethodInvoke   string
 	}
 )

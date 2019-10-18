@@ -46,7 +46,7 @@ func main() {
 }
 
 func onLocalConfigLoad(cfg *conf.Configuration) {
-	log.Infof(log_code.InfoOnLocalConfigLoad, "Outer http address is %s", cfg.HttpOuterAddress.GetAddress())
+	log.Infof(log_code.InfoOnLocalConfigLoad, "outer http address is %s", cfg.HttpOuterAddress.GetAddress())
 }
 
 func onRemoteConfigReceive(cfg, oldRemoteConfig *conf.RemoteConfig) {

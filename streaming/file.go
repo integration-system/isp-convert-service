@@ -46,7 +46,7 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 		}
 	}()
 	if err != nil {
-		utils.LogRequestHandlerError(log_code.TypeData.SendMultipart, method, err)
+		utils.LogRequestHandlerError(log_code.TypeData.ProxyMultipart, method, err)
 		utils.SendError(ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, ctx)
 		return
 	}
@@ -58,7 +58,7 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 		}
 	}()
 	if err != nil {
-		utils.LogRequestHandlerError(log_code.TypeData.SendMultipart, method, err)
+		utils.LogRequestHandlerError(log_code.TypeData.ProxyMultipart, method, err)
 		utils.SendError(ErrorMsgInvalidArg, codes.InvalidArgument, []interface{}{err.Error()}, ctx)
 		return
 	}
@@ -115,14 +115,14 @@ func SendMultipartData(ctx *fasthttp.RequestCtx, method string) {
 
 	err = stream.CloseSend()
 	if err != nil {
-		utils.LogRequestHandlerError(log_code.TypeData.SendMultipart, method, err)
+		utils.LogRequestHandlerError(log_code.TypeData.ProxyMultipart, method, err)
 	}
 
 	if ok {
 		arrayBody := strings.Join(response, ",")
 		_, err = ctx.WriteString("[" + arrayBody + "]")
 		if err != nil {
-			utils.LogRequestHandlerError(log_code.TypeData.SendMultipart, method, err)
+			utils.LogRequestHandlerError(log_code.TypeData.ProxyMultipart, method, err)
 		}
 	}
 }
@@ -133,7 +133,7 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 
 	req, err := utils.ReadJsonBody(ctx)
 	if err != nil {
-		utils.LogRequestHandlerError(log_code.TypeData.GetFile, method, err)
+		utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
 		utils.SendError(err.Error(), codes.InvalidArgument, nil, ctx)
 		return
 	}
@@ -145,7 +145,7 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 		}
 	}()
 	if err != nil {
-		utils.LogRequestHandlerError(log_code.TypeData.GetFile, method, err)
+		utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
 		utils.SendError(ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, ctx)
 		return
 	}
@@ -154,7 +154,7 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 		value := u.ConvertInterfaceToGrpcStruct(req)
 		err := stream.Send(backend.WrapBody(value))
 		if err != nil {
-			utils.LogRequestHandlerError(log_code.TypeData.GetFile, method, err)
+			utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
 			utils.SendError(ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, ctx)
 			return
 		}
@@ -194,20 +194,20 @@ func GetFile(ctx *fasthttp.RequestCtx, method string) {
 			break
 		}
 		if err != nil {
-			utils.LogRequestHandlerError(log_code.TypeData.GetFile, method, err)
+			utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
 			break
 		}
 		bytes := msg.GetBytesBody()
 		if bytes == nil {
 			log.WithMetadata(map[string]interface{}{
-				log_code.MdTypeData: log_code.TypeData.GetFile,
+				log_code.MdTypeData: log_code.TypeData.DownloadFile,
 				log_code.MdMethod:   method,
-			}).Errorf(log_code.WarnRequestHandler, "Method %s. Expected bytes array", method)
+			}).Errorf(log_code.WarnRequestHandler, "method %s. expected bytes array", method)
 			break
 		}
 		_, err = ctx.Write(bytes)
 		if err != nil {
-			utils.LogRequestHandlerError(log_code.TypeData.GetFile, method, err)
+			utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, method, err)
 			break
 		}
 	}
@@ -253,7 +253,7 @@ func transferFile(f multipart.File, stream isp.BackendService_RequestStreamClien
 func checkError(err error, ctx *fasthttp.RequestCtx) (bool, bool) {
 	if err != nil {
 		if err != io.EOF {
-			utils.LogRequestHandlerError(log_code.TypeData.GetFile, "", err)
+			utils.LogRequestHandlerError(log_code.TypeData.DownloadFile, "", err)
 			utils.SendError(ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, ctx)
 			return false, false
 		}

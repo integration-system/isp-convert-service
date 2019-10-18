@@ -42,7 +42,7 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 	//body, err := utils.ReadJsonBody(c)
 	body := c.Request.Body()
 	/*if err != nil {
-		streaming.LogError(log_code.TypeData.JsonContent, method, err)
+		streaming.LogError(log_code.TypeData.MethodInvoke, method, err)
 		streaming.SendError(err.Error(), codes.InvalidArgument, []interface{}{err.Error()}, c)
 		return
 	}*/
@@ -55,7 +55,7 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 
 	client, err := utils.GetGrpcClient()
 	if err != nil {
-		utils.LogRequestHandlerError(log_code.TypeData.JsonContent, methodName, err)
+		utils.LogRequestHandlerError(log_code.TypeData.MethodInvoke, methodName, err)
 		utils.SendError(streaming.ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, c)
 		return
 	}
@@ -85,7 +85,7 @@ func handleJson(c *fasthttp.RequestCtx, method string) {
 			}
 		}
 	} else {
-		utils.LogRequestHandlerError(log_code.TypeData.JsonContent, methodName, err)
+		utils.LogRequestHandlerError(log_code.TypeData.MethodInvoke, methodName, err)
 		utils.SendError(streaming.ErrorMsgInternal, codes.Internal, []interface{}{err.Error()}, c)
 	}
 }
