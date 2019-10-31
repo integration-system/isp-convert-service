@@ -1,3 +1,5 @@
+### v2.0.0
+* update to new isp-lib & config service
 ### v1.4.6
 * update to new log
 ### v1.4.5
